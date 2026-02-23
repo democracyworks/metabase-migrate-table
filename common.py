@@ -1,14 +1,16 @@
+import os
+
 import requests
 
-METABASE_API_KEY = "REPLACE_ME"
+METABASE_API_KEY = os.getenv("METABASE_API_KEY")
 BASE_URL = "https://my_metabase_instance_url/api"
 headers = {
     "Content-Type": "application/json",
     "x-api-key": METABASE_API_KEY,
 }
 
-if METABASE_API_KEY == "change_me":
-    raise ValueError("METABASE_API_KEY needs to be updated!")
+if not METABASE_API_KEY:
+    raise ValueError("METABASE_API_KEY environment variable must be set.")
 
 
 def call_metabase_api(query_endpoint: str, method: str = "GET", data: str = ""):
