@@ -2,7 +2,6 @@ from dataclasses import dataclass
 
 from common import (
     call_metabase_api,
-    get_field_name,
     get_source_table,
     modify_field_values,
 )
@@ -37,15 +36,13 @@ class Card:
             # c.save()
 
         if self.data["query_type"] == "query":
-            if get_source_table(self.data["dataset_query"]["query"]) != table.old_id:
+            if get_source_table(self.data["dataset_query"]) != table.old_id:
                 return False
 
-            self.data["dataset_query"]["query"].get(
-                "source-query", self.data["dataset_query"]["query"]
-            )["source-table"] = table.new_id
+            self.data["dataset_query"]["stages"][0]["source-table"] = table.new_id
 
-            self.data["dataset_query"]["query"] = modify_field_values(
-                self.data["dataset_query"]["query"],
+            self.data["dataset_query"] = modify_field_values(
+                self.data["dataset_query"],
                 table,
             )
             return True
@@ -57,15 +54,17 @@ class Card:
         column/field id on the new table.
         """
 
-        variables = self.data["dataset_query"]["native"]["template-tags"]
+        variables = self.data["dataset_query"]["native"].get("template-tags", {})
 
         for _, tag in variables.items():
+            dimension = tag.get("dimension")
             # Not all template-tags are variables, so we need to skip some of them
             if (
-                tag.get("dimension")  # to skip snippet
-                and tag["dimension"][0] == "field"
-                and table.is_field_in_old_table(tag["dimension"][1])
+                dimension  # to skip snippet
+                and len(dimension) == 3
+                and dimension[0] == "field"
+                and isinstance(dimension[2], (int, float))
+                and table.is_field_in_old_table(dimension[2])
             ):
-                tag["dimension"][1] = table.new_fields[
-                    get_field_name(tag["dimension"][1])
-                ]
+                # Reuse the recursive MBQL5 ref mutator for native template tag dimensions.
+                tag["dimension"] = modify_field_values(dimension, table)

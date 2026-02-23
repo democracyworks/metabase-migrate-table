@@ -39,7 +39,30 @@ def call_metabase_api(query_endpoint: str, method: str = "GET", data: str = ""):
 
 
 def get_source_table(query):
-    return query.get("source-query", query).get("source-table", None)
+    stages = query.get("stages", [])
+    if not stages:
+        return None
+
+    first_stage = stages[0]
+    if not isinstance(first_stage, dict):
+        return None
+
+    return first_stage.get("source-table")
+
+
+def _get_new_field_id(table, old_field_id):
+    field_name = next(
+        (
+            field_name
+            for field_name, field_id in table.old_fields.items()
+            if field_id == old_field_id
+        ),
+        None,
+    )
+    if not field_name:
+        field_name = get_field_name(old_field_id)
+
+    return table.new_fields[field_name]
 
 
 def get_field_name(field_id):
@@ -50,15 +73,14 @@ def get_field_name(field_id):
 def modify_field_values(data, table):
     # Check if the data is a list
     if isinstance(data, list):
-        # If the current list matches the pattern ["field", <number>, <any>]
+        # MBQL 5 field refs are ["field", <options>, <field_id_or_name>]
         if (
             len(data) == 3
             and data[0] == "field"
-            and isinstance(data[1], (int, float))
-            and table.is_field_in_old_table(data[1])
+            and isinstance(data[2], (int, float))
+            and table.is_field_in_old_table(data[2])
         ):
-            new_field_name = get_field_name(data[1])
-            data[1] = table.new_fields[new_field_name]  # Modify the field id
+            data[2] = _get_new_field_id(table, data[2])  # Modify the field id
         else:
             # Otherwise, recursively check each element of the list
             for i in range(len(data)):

@@ -54,7 +54,7 @@ class Dashboard:
                         )
 
                 if card["query_type"] == "query":
-                    if get_source_table(card["dataset_query"]["query"]) == table.old_id:
+                    if get_source_table(card["dataset_query"]) == table.old_id:
                         dashcard["parameter_mappings"] = modify_field_values(
                             dashcard["parameter_mappings"], table
                         )
