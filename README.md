@@ -20,8 +20,7 @@ This code is privded
 ## Prerequisites
 
 - **Python 3.12** or higher (I am usually on one of the latest version)
-- Necessary Python modules:
-  - `requests`
+- [`uv`](https://docs.astral.sh/uv/) for dependency and environment management
 - Metabase API access
 
 ## Installation
@@ -35,10 +34,12 @@ This code is privded
 
 2. **Install Dependencies**
 
-   It's recommended to use a virtual environment. Once you have it activated just install the required modules.
+   Sync the project dependencies with `uv`.
+   This creates and manages the virtual environment automatically.
+   Dependencies are declared in `pyproject.toml` and pinned in `uv.lock`.
 
    ```bash
-   pip install -r requirements.txt
+   uv sync
    ```
 
 3. **Credential**
@@ -88,7 +89,7 @@ The script is executed via the command line and requires specific arguments to f
 ### Basic Command Structure
 
 ```bash
-python migrate_table.py -o OLD_TABLE_NAME -n NEW_TABLE_NAME [-l] [-a] [-c CARD_ID [CARD_ID ...]] [-d DASHBOARD_ID [DASHBOARD_ID ...]] [-r '{"old_name":"new_name"}'] 
+uv run python migrate_table.py -o OLD_TABLE_NAME -n NEW_TABLE_NAME [-l] [-a] [-c CARD_ID [CARD_ID ...]] [-d DASHBOARD_ID [DASHBOARD_ID ...]] [-r '{"old_name":"new_name"}']
 ```
 
 ## Examples
@@ -98,7 +99,7 @@ python migrate_table.py -o OLD_TABLE_NAME -n NEW_TABLE_NAME [-l] [-a] [-c CARD_I
 List all objects associated to a table:
 
 ```bash
-python migrate_table.py \
+uv run python migrate_table.py \
   -o new_schema.new_table \
   -n new_schema.new_table \
   -l
@@ -109,7 +110,7 @@ python migrate_table.py \
 Update card with ID `10717`, replacing `'old_schema.old_table'` with `'new_schema.new_table'`:
 
 ```bash
-python migrate_table.py \
+uv run python migrate_table.py \
   -o new_schema.new_table \
   -n new_schema.new_table \
   -c 10717
@@ -120,7 +121,7 @@ python migrate_table.py \
 Update cards with IDs `10717`, `12345`, and `67890`:
 
 ```bash
-python migrate_table.py \
+uv run python migrate_table.py \
   -o new_schema.new_table \
   -n new_schema.new_table \
   -c 10717 12345 67890
@@ -130,7 +131,7 @@ python migrate_table.py \
 To migrate in one go all the objects associated to a given table you can the following command:
 
 ```bash
-python migrate_table.py \
+uv run python migrate_table.py \
   -o new_schema.new_table \
   -n new_schema.new_table \
   -a
@@ -141,7 +142,7 @@ python migrate_table.py \
 In case the new table contains columns with names different from the old one, you can pass a JSON string with the couple `"old_colum_name":"new_column_name"`:
 
 ```bash
-python migrate_table.py \
+uv run python migrate_table.py \
   -o new_schema.new_table \
   -n new_schema.new_table \
   -a \
