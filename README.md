@@ -1,8 +1,7 @@
 # Metabase Card Table Update Script
 
-This script updates Metabase cards to use a new table, replacing occurrences of an old table name with a new one and updating field IDs accordingly. It's useful when migrating or renaming tables within your Metabase instance.
-
-This code is privded 
+This script updates Metabase cards to use a new table, replacing occurrences of an old table name with a new one and updating field IDs accordingly.
+It's useful when migrating or renaming tables within your Metabase instance.
 
 ## Table of Contents
 
@@ -12,16 +11,15 @@ This code is privded
   - [Command-Line Arguments](#command-line-arguments)
   - [Examples](#examples)
 - [Development and Debugging](#development-and-debugging)
-- [Notes](#notes)
-- [License](#license)
+- [Resources](#resources)
 
 ---
 
 ## Prerequisites
 
-- **Python 3.12** or higher (I am usually on one of the latest version)
-- [`uv`](https://docs.astral.sh/uv/) for dependency and environment management
-- Metabase API access
+- **Python 3.12** or higher.
+- [`uv`](https://docs.astral.sh/uv/) for dependency and environment management.
+- Metabase API access.
 
 ## Installation
 
@@ -42,19 +40,25 @@ This code is privded
    uv sync
    ```
 
-3. **Credential**
+3. **Credentials**
 
-   You will need to add in the file `common.py`:
-   - The url (`BASE_URL`) of your Metabase instance.
-   - Your Metabase API Key (`METABASE_API_KEY`).
+   Set environment variables before running scripts:
+
+   ```bash
+   export METABASE_API_KEY="..."
+   export METABASE_BASE_URL="https://your-metabase-host/api"
+   ```
+
+   `METABASE_BASE_URL` must include `/api`.
 
 ## Usage
 
 The script is executed via the command line and requires specific arguments to function correctly.
 
-> **_IMPORTANT:_** In case a card is modified by this script independently from the dashboard containing it, it is possible that the dashboard filters associated to the dashcard will be disconnected and the dashcard will unable to retrieve data.
+> **IMPORTANT:** In case a card is modified by this script independently from the dashboard containing it, it is possible that the dashboard filters associated with the dashcard will be disconnected and the dashcard will be unable to retrieve data.
 >
->This can be fixed opening the dashboard, reconnecting the filters, and saving it. For some Metabase internal reasons, changes will not be visible before saving the dashboard.
+> This can be fixed by opening the dashboard, reconnecting the filters, and saving it.
+> For some Metabase internal reasons, changes will not be visible before saving the dashboard.
 
 ### Command-Line Arguments
 
@@ -66,22 +70,24 @@ The script is executed via the command line and requires specific arguments to f
   The name of the new table that will replace the old one.  
   *Example*: `'new_schema.new_table'`
 
-- `-l`, `--List`:
+- `-l`, `--list`:
   List all the cards/questions and dashboards depending on the old table.
 
 - `-a`, `--all`:
   Migrate all the cards and dashboards depending on the old table.
 
 - `-c`, `--card_ids`:  
-  One or more Metabase card IDs to update. Provide multiple IDs separated by spaces.  
+  One or more Metabase card IDs to update.
+  Provide multiple IDs separated by spaces.
   *Example*: `10717 12345 67890`
 
 - `-d`, `--dashboard_ids`:  
-  One or more Metabase dashboard IDs to update. Provide multiple IDs separated by spaces.  
+  One or more Metabase dashboard IDs to update.
+  Provide multiple IDs separated by spaces.
   *Example*: `10717 12345 67890`
 
 - `-r`, `--renamed_columns`:
-  Pass a json object with `old:new` column names, to handle renamed columns. 
+  Pass a JSON object with `old:new` column names to handle renamed columns.
   *Example*: `{"insurance_category_label":"insurance_category"}`
 
 `-a`, `-c`, and `-d` are mutually exclusive.
@@ -89,70 +95,69 @@ The script is executed via the command line and requires specific arguments to f
 ### Basic Command Structure
 
 ```bash
-uv run python migrate_table.py -o OLD_TABLE_NAME -n NEW_TABLE_NAME [-l] [-a] [-c CARD_ID [CARD_ID ...]] [-d DASHBOARD_ID [DASHBOARD_ID ...]] [-r '{"old_name":"new_name"}']
+uv run main.py -o OLD_TABLE_NAME -n NEW_TABLE_NAME [-l] [-a] [-c CARD_ID [CARD_ID ...]] [-d DASHBOARD_ID [DASHBOARD_ID ...]] [-r '{"old_name":"new_name"}']
 ```
 
 ## Examples
 
-### **Example 1: Updating a Single Card**
-
-List all objects associated to a table:
+### Example 1: List objects associated with a table
 
 ```bash
-uv run python migrate_table.py \
-  -o new_schema.new_table \
+uv run main.py \
+  -o old_schema.old_table \
   -n new_schema.new_table \
   -l
 ```
 
-### **Example 2: Updating a Single Card**
+### Example 2: Update a single card
 
 Update card with ID `10717`, replacing `'old_schema.old_table'` with `'new_schema.new_table'`:
 
 ```bash
-uv run python migrate_table.py \
-  -o new_schema.new_table \
+uv run main.py \
+  -o old_schema.old_table \
   -n new_schema.new_table \
   -c 10717
 ```
 
-### **Example 3: Updating Multiple Cards**
+### Example 3: Update multiple cards
 
 Update cards with IDs `10717`, `12345`, and `67890`:
 
 ```bash
-uv run python migrate_table.py \
-  -o new_schema.new_table \
+uv run main.py \
+  -o old_schema.old_table \
   -n new_schema.new_table \
   -c 10717 12345 67890
 ```
-### **Example 4: Migrate dashboards and cards associated to a table**
 
-To migrate in one go all the objects associated to a given table you can the following command:
+### Example 4: Migrate dashboards and cards associated with a table
+
+To migrate all objects associated with a given table in one go:
 
 ```bash
-uv run python migrate_table.py \
-  -o new_schema.new_table \
+uv run main.py \
+  -o old_schema.old_table \
   -n new_schema.new_table \
   -a
 ```
 
-### **Example 5: Rename columnns**
+### Example 5: Rename columns
 
-In case the new table contains columns with names different from the old one, you can pass a JSON string with the couple `"old_colum_name":"new_column_name"`:
+In case the new table contains columns with names different from the old one, you can pass a JSON string with pairs like `"old_column_name":"new_column_name"`:
 
 ```bash
-uv run python migrate_table.py \
-  -o new_schema.new_table \
+uv run main.py \
+  -o old_schema.old_table \
   -n new_schema.new_table \
   -a \
-  -r '{"successfull_connections":"successful_connections"}'
+  -r '{"successful_connections":"successful_connections_new"}'
 ```
-
 
 ## Development and Debugging
 
-For development or debugging purposes, default arguments can be set within the script. When running the script without command-line arguments in a debugging environment (e.g., an IDE like VSCode), it will use these default values.
+For development or debugging purposes, default arguments can be set within the script.
+When running the script without command-line arguments in a debugging environment (for example, an IDE like VSCode), it will use these default values.
 
 ### Setting Default Arguments
 
@@ -161,7 +166,7 @@ In the script, locate the `default_arguments` dictionary:
 ```python
 # Use it for development or debugging purposes
 default_arguments = {
-    "old": "new_schema.new_table",
+    "old": "old_schema.old_table",
     "new": "new_schema.new_table",
     "all": False,
     "card_ids": "10717 10733",
@@ -171,3 +176,7 @@ default_arguments = {
 ```
 
 Set the desired default values for `old`, `new`, and the other parameters.
+
+## Resources
+
+- [Metabase API references](docs/metabase-api-references.md)
