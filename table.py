@@ -1,6 +1,8 @@
+import json
 from dataclasses import dataclass, field
-from common import call_metabase_api, get_source_table
 from typing import Dict, List
+
+from common import call_metabase_api
 
 
 @dataclass
@@ -46,14 +48,12 @@ class Table:
     #     return old_field_name
 
     def _get_associated_cards(self) -> List[int]:
-        data = call_metabase_api(query_endpoint="card/")
+        query_cards = call_metabase_api(
+            query_endpoint=f"card/?f=table&model_id={self.old_id}"
+        )
+        card_ids_query = [item["id"] for item in query_cards]
 
-        card_ids_query = [
-            item["id"]
-            for item in data
-            if get_source_table(item.get("dataset_query", {}).get("query", {}))
-            == self.old_id
-        ]
+        data = call_metabase_api(query_endpoint="card/")
 
         card_ids_native = [
             item["id"]
@@ -66,34 +66,26 @@ class Table:
         ]
 
         card_ids = card_ids_query + card_ids_native
-        card_ids.sort()
-        return card_ids
+        return sorted(list(set(card_ids)))
 
     def _get_associated_dashboards(self) -> List[int]:
+        if not self.card_ids:
+            return []
+
+        data = call_metabase_api(
+            query_endpoint="cards/dashboards",
+            method="POST",
+            data=json.dumps({"card_ids": self.card_ids}),
+        )
 
         dashboard_ids = []
-        for card_id in self.card_ids:
-            query_data = (
-                """{"parameters":[{"type":"id","value":[\""""
-                + str(card_id)
-                + """"],"id":"81d22d7f","target":["dimension",["field",46192,{"base-type":"type/Integer","join-alias":"Content - Card Qualified"}]]}]}"""
-            )
-            data = call_metabase_api(
-                query_endpoint="dashboard/535/dashcard/8155/card/6429/query",
-                method="POST",
-                data=query_data,
-            )
+        for card in data or []:
+            for dashboard in card.get("dashboards", []):
+                dashboard_id = dashboard.get("id")
+                if isinstance(dashboard_id, int):
+                    dashboard_ids.append(dashboard_id)
 
-            dashboard_ids = dashboard_ids + (
-                [dashboard[1] for dashboard in data.get("data", {}).get("rows", [])]
-                if data
-                else []
-            )
-
-        dashboard_ids = list(set(dashboard_ids))
-        dashboard_ids.sort()
-
-        return dashboard_ids
+        return sorted(list(set(dashboard_ids)))
 
     def is_field_in_old_table(self, field_id) -> bool:
         return field_id in self.old_fields.values()
