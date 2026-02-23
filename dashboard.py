@@ -46,11 +46,11 @@ class Dashboard:
                             dashcard["parameter_mappings"], table
                         )
                         print(
-                            f"   dashcard {dashcard["id"]} pointing to {card["id"]}: updated parameter_mappings"
+                            f"   dashcard {dashcard['id']} pointing to {card['id']}: updated parameter_mappings"
                         )
                     else:
                         print(
-                            f"   dashcard {dashcard["id"]} pointing to {card["id"]}: no changes needed"
+                            f"   dashcard {dashcard['id']} pointing to {card['id']}: no changes needed"
                         )
 
                 if card["query_type"] == "query":
@@ -59,11 +59,11 @@ class Dashboard:
                             dashcard["parameter_mappings"], table
                         )
                         print(
-                            f"   dashcard {dashcard["id"]} pointing to {card["id"]}: updated parameter_mappings"
+                            f"   dashcard {dashcard['id']} pointing to {card['id']}: updated parameter_mappings"
                         )
                     else:
                         print(
-                            f"   dashcard {dashcard["id"]} pointing to {card["id"]}: no changes needed"
+                            f"   dashcard {dashcard['id']} pointing to {card['id']}: no changes needed"
                         )
 
             new_dashcards.append(dashcard)
