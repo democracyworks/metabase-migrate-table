@@ -16,12 +16,14 @@ def call_metabase_api(query_endpoint: str, method: str = "GET", data: str = ""):
         response = requests.put(
             f"{BASE_URL}/{query_endpoint}", headers=headers, json=data
         )
-    if method == "POST":
+    elif method == "POST":
         response = requests.post(
             f"{BASE_URL}/{query_endpoint}", headers=headers, data=data
         )
-    else:
+    elif method == "GET":
         response = requests.get(f"{BASE_URL}/{query_endpoint}", headers=headers)
+    else:
+        raise ValueError(f"Unsupported HTTP method: {method}")
     if response.status_code in [200, 202]:
         return response.json()
     else:
